@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using OReilly.Configurations;
 using OReilly.Data;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace OReilly
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Our database service
             services.AddDbContext<DataBaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
@@ -39,6 +41,9 @@ namespace OReilly
                     .AllowAnyMethod()
                     .AllowAnyHeader());
             });
+
+            //We add the automapper. The autommaper help us to map the database with the DTO. Create a layer between this layers.
+            services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddSwaggerGen(c =>
             {

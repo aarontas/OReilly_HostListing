@@ -11,5 +11,9 @@ namespace OReilly.Data
         public int Id { get; set; }
         public string Name{ get; set; }
         public string ShortName { get; set; }
+
+        //Its only on the domain object, not in the database
+        //We can have a list of hotels in a country e.g
+        public virtual IList<Hotel> Hotels { get; set; }
     }
 }
