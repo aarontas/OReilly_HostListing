@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OReilly.Configurations;
 using OReilly.Data;
+using OReilly.IRepository;
+using OReilly.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,13 +47,17 @@ namespace OReilly
             //We add the automapper. The autommaper help us to map the database with the DTO. Create a layer between this layers.
             services.AddAutoMapper(typeof(MapperInitializer));
 
+            //Transient mean that every time that it is needed that a new intansce, it will be created.
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OReilly", Version = "v1"});
             });
 
             //Better put it near to the last
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(op => 
+                op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); //The video tutorial has a problem and "resolve" ignoring this. But I havent this problem
 
         }
 
