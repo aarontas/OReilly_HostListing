@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -35,6 +36,10 @@ namespace OReilly
             services.AddDbContext<DataBaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
+
+            //Configure our identity service
+            services.AddAuthentication();
+            services.ConfigureIdentity();//Here method have a this. This means that all services are sending to the method and there are all ones about the database and authentication
 
             //We add the Policy to use our API. If we want that only us can use that, change the builder methods.
             services.AddCors(o => {

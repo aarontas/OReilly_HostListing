@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OReilly.Data
 {
-    public class DataBaseContext : DbContext
+    public class DataBaseContext : IdentityDbContext<ApiUser>//We need this to secure our access. In the ApiUser class we have a kind of Indetity user with properties that we need to check
     {
         //Options come from startup
         public DataBaseContext(DbContextOptions options) : base(options)
@@ -18,6 +19,8 @@ namespace OReilly.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
+
             //Hardcode the data in the database
             builder.Entity<Country>().HasData(
                     new Country
