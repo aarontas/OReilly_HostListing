@@ -59,6 +59,7 @@ namespace OReilly.Controllers
                     return BadRequest(ModelState);
                 }
 
+                await _userManager.AddToRolesAsync(user, userDTO.Roles);//Add the roles when register this user
                 return Accepted();
 
             }
