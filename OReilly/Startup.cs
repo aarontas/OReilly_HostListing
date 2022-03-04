@@ -13,6 +13,7 @@ using OReilly.Configurations;
 using OReilly.Data;
 using OReilly.IRepository;
 using OReilly.Repository;
+using OReilly.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +41,7 @@ namespace OReilly
             //Configure our identity service
             services.AddAuthentication();
             services.ConfigureIdentity();//Here method have a this. This means that all services are sending to the method and there are all ones about the database and authentication
+            services.ConfigureJWT(Configuration);//Configure out token to authonticate
 
             //We add the Policy to use our API. If we want that only us can use that, change the builder methods.
             services.AddCors(o => {
@@ -54,6 +56,9 @@ namespace OReilly
 
             //Transient mean that every time that it is needed that a new intansce, it will be created.
             services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            //Manager for authentication
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddSwaggerGen(c =>
             {

@@ -11,7 +11,7 @@ namespace OReilly.Models
     /// At least need to be like our ApiUser class because need this fields
     /// </summary>
 
-    public class UserDTO : LoginDTO
+    public class UserDTO : LoginUserDTO
     {
         public string FristName { get; set; }
         public string LastName { get; set; }
@@ -25,7 +25,7 @@ namespace OReilly.Models
     }
 
     //This is the same class but only with the fields that we need to login. The last one is necessary to register a new user
-    public class LoginDTO
+    public class LoginUserDTO
     {
         [Required]
         [DataType(DataType.EmailAddress)]
