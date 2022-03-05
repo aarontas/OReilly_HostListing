@@ -90,6 +90,7 @@ namespace OReilly
 
             app.UseRouting();
 
+            app.UseAuthentication();//We need to athenticate previously to authorizate
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

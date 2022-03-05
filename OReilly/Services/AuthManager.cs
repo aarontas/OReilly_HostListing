@@ -1,5 +1,5 @@
-﻿using AutoMapper.Configuration;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OReilly.Data;
 using OReilly.Models;
@@ -30,17 +30,24 @@ namespace OReilly.Services
         {
             var siginCredentials = GetSigningCredentials();
             var claims = await GetClaims();
-            var tokenOptions = GenerateTokenOptions(siginCredentials, claims);
+            var token = GenerateTokenOptions(siginCredentials, claims);
 
-            return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         private JwtSecurityToken GenerateTokenOptions(SigningCredentials siginCredentials, List<Claim> claims)
         {
-            //var jwtSettings = configuration.GetSection("Jwt");
-            //var options = new JwtSecurityToken(
-            //    issuer: 
-            //    )
+            var jwtSettings = _configuration.GetSection("Jwt"); //All this are the same that we have in our appsetting or in our serviceExtension
+            var expiration = DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings.GetSection("lifetime").Value));
+            
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings.GetSection("Issuer").Value,
+                claims: claims,
+                expires: expiration,
+                signingCredentials: siginCredentials
+                );
+
+            return token;
         }
 
         private async Task<List<Claim>> GetClaims()
@@ -69,7 +76,7 @@ namespace OReilly.Services
 
         public async Task<bool> ValidateUser(LoginUserDTO userDTO)
         {   //The username in our aplication is our name
-            var _user = await _userManager.FindByNameAsync(userDTO.Email);
+            _user = await _userManager.FindByNameAsync(userDTO.Email);
             return (_user != null && await _userManager.CheckPasswordAsync(_user, userDTO.Password));
         }
     }

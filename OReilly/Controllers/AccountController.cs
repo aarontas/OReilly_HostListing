@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OReilly.Data;
 using OReilly.Models;
+using OReilly.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,16 +22,19 @@ namespace OReilly.Controllers
         //private readonly SignInManager<ApiUser> _signInManager;
         private readonly ILogger<AccountController> _logger;
         private readonly IMapper _mapper;
+        private readonly IAuthManager _authManager;
 
         public AccountController(UserManager<ApiUser> userManager,
                                  //SignInManager<ApiUser> signInManager,
                                  ILogger<AccountController> logger,
-                                 IMapper mapper)
+                                 IMapper mapper,
+                                 IAuthManager authManager)
         {
             _userManager = userManager;
             //_signInManager = signInManager;
             _logger = logger;
             _mapper = mapper;
+            _authManager = authManager;
         }
 
         //We can send sensitive informacion across the pipe or in plane text
@@ -70,31 +74,29 @@ namespace OReilly.Controllers
             }
         }
 
-        //[HttpPost]
-        //[Route("login")]
-        //public async Task<IActionResult> Login([FromBody] LoginDTO userDTO)//Frombody is to ingore all that comes from URL
-        //{
-        //    _logger.LogInformation($"Login Attemp for {userDTO.Email}");
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)//Frombody is to ingore all that comes from URL
+        {
+            _logger.LogInformation($"Login Attemp for {userDTO.Email}");
 
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    try
-        //    {
-        //        var result = await _signInManager.PasswordSignInAsync(userDTO.Email, userDTO.Password, false, false);
+            try
+            {
+                if (!await _authManager.ValidateUser(userDTO))
+                    return Unauthorized();
 
-        //        if (!result.Succeeded)
-        //            return Unauthorized(userDTO);
+                return Accepted(new { Token = await _authManager.CreateToken() });
 
-        //        return Accepted();
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(ex, $"Something went wrong in the {nameof(Login)}");
-        //        return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
-        //    }
-        //}
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Something went wrong in the {nameof(Login)}");
+                return Problem($"Something went wrong in the {nameof(Login)}", statusCode: 500);
+            }
+        }
 
     }
 }
