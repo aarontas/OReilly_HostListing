@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,10 @@ namespace OReilly.Controllers
         }
 
         [HttpGet]
+        //[ResponseCache(Duration = 60)]//Cache in seconds to retrive. We put this globaly
+        //[ResponseCache(CacheProfileName = "120SecondsDuration")]//Use the global parameter
+        [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 60)] //We can overriede the global cache feature
+        [HttpCacheValidation(MustRevalidate = false)]//We can overriede the global cache feature
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCountries([FromQuery] RequestParams requestParams)//FromQuery comes from the querystring in the url. This have to fit with our requestParams class
@@ -40,6 +45,7 @@ namespace OReilly.Controllers
         }
 
         [HttpGet("{id:int}", Name = "GetCountry")]
+        //[ResponseCache(CacheProfileName = "120SecondsDuration")]//Normally se use this only when we return values, is not necessary to create or update
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCountry(int id)

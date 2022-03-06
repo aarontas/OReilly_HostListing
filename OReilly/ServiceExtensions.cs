@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Marvin.Cache.Headers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -57,8 +60,10 @@ namespace OReilly
         //Create a custom exception. We have in the middleware pipeline and not a service for this reason is a applicationBuilder and not a servicecollection
         public static void ConfigureExceptionHandler(this IApplicationBuilder app)
         {
-            app.UseExceptionHandler(error => {
-                error.Run(async context => {
+            app.UseExceptionHandler(error =>
+            {
+                error.Run(async context =>
+                {
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError; //In all our exceptions use the 500 status error code 
                     context.Response.ContentType = "application/json"; //Type of response
                     var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
@@ -75,6 +80,35 @@ namespace OReilly
                     }
                 });
             });
+        }
+
+        //Service for API Version
+        public static void ConfigureVersioning(this IServiceCollection servies)
+        {
+            servies.AddApiVersioning(opt =>
+            {
+                opt.ReportApiVersions = true;
+                opt.AssumeDefaultVersionWhenUnspecified = true;
+                opt.DefaultApiVersion = new ApiVersion(1, 0); //This our version by default
+                opt.ApiVersionReader = new HeaderApiVersionReader("api-version");// we can use in the header verison and is not necesary to use query or expand the path
+            });
+        }
+
+        //This give a lot of information in the header when get any information using the catche
+        public static void ConfigureHttpCacheHeaders(this IServiceCollection services)
+        {
+            services.AddResponseCaching();
+            services.AddHttpCacheHeaders(//Now the cache configuration is global and all httpresponse have this header. Is not necesary specific in everyone
+                (expirationOpt) =>
+                {
+                    expirationOpt.MaxAge = 120;
+                    expirationOpt.CacheLocation = CacheLocation.Private;
+                },
+                (validationOpt) =>
+                {
+                    validationOpt.MustRevalidate = true;
+                }
+                );
         }
     }
 }

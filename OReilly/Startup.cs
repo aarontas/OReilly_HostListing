@@ -38,6 +38,10 @@ namespace OReilly
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
 
+            ////For cache
+            //services.AddResponseCaching();
+            services.ConfigureHttpCacheHeaders();
+
             //Configure our identity service
             services.AddAuthentication();
             services.ConfigureIdentity();//Here method have a this. This means that all services are sending to the method and there are all ones about the database and authentication
@@ -66,9 +70,16 @@ namespace OReilly
             });
 
             //Better put it near to the last
-            services.AddControllers().AddNewtonsoftJson(op => 
+            services.AddControllers(config => {
+                    config.CacheProfiles.Add("120SecondsDuration", new CacheProfile //Set a global specific cache value
+                    {
+                        Duration = 120
+                    });
+                }).AddNewtonsoftJson(op => 
                 op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); //The video tutorial has a problem and "resolve" ignoring this. But I havent this problem
 
+            //Configure our version manager
+            services.ConfigureVersioning();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,6 +101,10 @@ namespace OReilly
 
             //Here, after configurate the Corse, we need to use that.
             app.UseCors("AllowAll");
+
+            //For cache
+            app.UseResponseCaching();
+            app.UseHttpCacheHeaders();
 
             app.UseRouting();
 
