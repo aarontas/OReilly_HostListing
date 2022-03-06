@@ -1,9 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using OReilly.Data;
+using OReilly.Models;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,6 +52,29 @@ namespace OReilly
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))//We encode out key (enviaroment). Our encoding is nothing, but could be harder
                     };
                 });
+        }
+
+        //Create a custom exception. We have in the middleware pipeline and not a service for this reason is a applicationBuilder and not a servicecollection
+        public static void ConfigureExceptionHandler(this IApplicationBuilder app)
+        {
+            app.UseExceptionHandler(error => {
+                error.Run(async context => {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError; //In all our exceptions use the 500 status error code 
+                    context.Response.ContentType = "application/json"; //Type of response
+                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    if (contextFeature != null)
+                    {
+                        Log.Error($"Something went wrong in the {contextFeature.Error}");//Use the message that we allways used in the log catch
+
+                        //We generate the log and after that, we generate a error model with a status code and a message
+                        await context.Response.WriteAsync(new Error
+                        {
+                            StatusCode = context.Response.StatusCode,
+                            Message = "Internal Server Error. Please Try again later"
+                        }.ToString());
+                    }
+                });
+            });
         }
     }
 }

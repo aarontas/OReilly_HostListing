@@ -83,6 +83,9 @@ namespace OReilly
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "OReilly v1"));
 
+            //Use custom error handling
+            app.ConfigureExceptionHandler();
+
             app.UseHttpsRedirection();
 
             //Here, after configurate the Corse, we need to use that.

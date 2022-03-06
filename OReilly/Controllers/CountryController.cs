@@ -33,17 +33,10 @@ namespace OReilly.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCountries([FromQuery] RequestParams requestParams)//FromQuery comes from the querystring in the url. This have to fit with our requestParams class
         {
-            try
-            {
-                var countries = await _unitOfWork.Countries.GetAll(requestParams); //Override the GetAll to limited for our query
-                var results = _mapper.Map<IList<CountryDTO>>(countries);//We doing a map because we want to work with the DTO and no with de domain
-                return Ok(results);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(GetCountries)}");
-                return StatusCode(500, "Internal server error. Please try again later.");//500 Tell the user that is wrong. 500 is the universal number to said that somthing is wrong
-            }
+
+            var countries = await _unitOfWork.Countries.GetAll(requestParams); //Override the GetAll to limited for our query
+            var results = _mapper.Map<IList<CountryDTO>>(countries);//We doing a map because we want to work with the DTO and no with de domain
+            return Ok(results);
         }
 
         [HttpGet("{id:int}", Name = "GetCountry")]
@@ -51,17 +44,9 @@ namespace OReilly.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCountry(int id)
         {
-            try
-            {
-                var country = await _unitOfWork.Countries.Get(q => q.Id == id, new List<string> { "Hotels" });
-                var result = _mapper.Map<CountryDTO>(country);//We doing a map because we want to work with the DTO and no with de domain
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(GetCountry)}");
-                return StatusCode(500, "Internal server error. Please try again later.");//500 Tell the user that is wrong. 500 is the universal number to said that somthing is wrong
-            }
+            var country = await _unitOfWork.Countries.Get(q => q.Id == id, new List<string> { "Hotels" });
+            var result = _mapper.Map<CountryDTO>(country);//We doing a map because we want to work with the DTO and no with de domain
+            return Ok(result);
         }
 
 
@@ -78,20 +63,11 @@ namespace OReilly.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
-                var country = _mapper.Map<Country>(countryDTO);
-                await _unitOfWork.Countries.Insert(country);
-                await _unitOfWork.Save();
+            var country = _mapper.Map<Country>(countryDTO);
+            await _unitOfWork.Countries.Insert(country);
+            await _unitOfWork.Save();
 
-                return CreatedAtRoute("GetCountry", new { id = country.Id }, country);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(CreateCountry)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
-
+            return CreatedAtRoute("GetCountry", new { id = country.Id }, country);
         }
 
         //[Authorize(Roles = "Administrator")]//Only administrator users can create a hotel
@@ -106,26 +82,19 @@ namespace OReilly.Controllers
                 _logger.LogError($"Invalid UPDATE attemp in {nameof(UpdateCountry)}");
                 return BadRequest(ModelState);
             }
-            try
+            var country = await _unitOfWork.Countries.Get(q => q.Id == id);
+            if (country == null)
             {
-                var country = await _unitOfWork.Countries.Get(q => q.Id == id);
-                if (country == null)
-                {
-                    _logger.LogError($"Invalid UPDATE attemp in {nameof(UpdateCountry)}");
-                    return BadRequest("Submitted data is invalid");
-                }
-
-                _mapper.Map(countryDTO, country);
-                _unitOfWork.Countries.Update(country);
-                await _unitOfWork.Save();
-
-                return NoContent();
+                _logger.LogError($"Invalid UPDATE attemp in {nameof(UpdateCountry)}");
+                return BadRequest("Submitted data is invalid");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(UpdateCountry)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            _mapper.Map(countryDTO, country);
+            _unitOfWork.Countries.Update(country);
+            await _unitOfWork.Save();
+
+            return NoContent();
+
         }
 
         [HttpDelete("{id:int}")]
@@ -140,25 +109,17 @@ namespace OReilly.Controllers
                 return BadRequest();
             }
 
-            try
+            var country = await _unitOfWork.Countries.Get(q => q.Id == id);
+            if (country == null)
             {
-                var country = await _unitOfWork.Countries.Get(q => q.Id == id);
-                if (country == null)
-                {
-                    _logger.LogError($"Invalid DELETE attemp in {nameof(DeleteCountry)}");
-                    return BadRequest("Submitted data is invalid");
-                }
-
-                await _unitOfWork.Countries.Delete(id);
-                await _unitOfWork.Save();
-
-                return NoContent();
+                _logger.LogError($"Invalid DELETE attemp in {nameof(DeleteCountry)}");
+                return BadRequest("Submitted data is invalid");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteCountry)}");
-                return StatusCode(500, "Internal server error. Please try again later.");
-            }
+
+            await _unitOfWork.Countries.Delete(id);
+            await _unitOfWork.Save();
+
+            return NoContent();
         }
 
     }
