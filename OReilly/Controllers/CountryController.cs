@@ -31,11 +31,11 @@ namespace OReilly.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetCountries()
+        public async Task<IActionResult> GetCountries([FromQuery] RequestParams requestParams)//FromQuery comes from the querystring in the url. This have to fit with our requestParams class
         {
             try
             {
-                var countries = await _unitOfWork.Countries.GetAll();
+                var countries = await _unitOfWork.Countries.GetAll(requestParams); //Override the GetAll to limited for our query
                 var results = _mapper.Map<IList<CountryDTO>>(countries);//We doing a map because we want to work with the DTO and no with de domain
                 return Ok(results);
             }
@@ -70,7 +70,7 @@ namespace OReilly.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateCountry([FromBody] CreateCountryDTO countryDTO)
+        public async Task<IActionResult> CreateCountry([FromBody] CreateCountryDTO countryDTO) //FromBody comes frome body and is not possible to see in the URL
         {
             if (!ModelState.IsValid)
             {
@@ -156,7 +156,6 @@ namespace OReilly.Controllers
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteCountry)}");
                 return StatusCode(500, "Internal server error. Please try again later.");
             }

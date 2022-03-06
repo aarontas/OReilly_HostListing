@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OReilly.Data;
 using OReilly.IRepository;
+using OReilly.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace OReilly.Repository
 {
@@ -73,6 +75,25 @@ namespace OReilly.Repository
 
             //AsNoTracking avoid to use extramemory. Is nice from read only functions
             return await query.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IPagedList<T>> GetAll(RequestParams requestParams, List<string> includes = null)
+        {
+            IQueryable<T> query = _db;
+
+            //We can use query.Take to take the number that we want and query.Skip to skip the index (if we want the page 10 and 2 for page we skip 20 (2*10) and take 2)
+            //Its options instead of use the Ipagedlist nuget to use the ToPagedListAsync
+                
+            if (includes != null)
+            {
+                foreach (var includeProperty in includes)
+                {
+                    query = query.Include(includeProperty);
+                }
+            }
+
+            return await query.AsNoTracking()
+                .ToPagedListAsync(requestParams.PageNumber, requestParams.PageSize);//Now we return a page and not all in the database
         }
 
         public async Task Insert(T entity)
