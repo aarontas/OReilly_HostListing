@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -37,6 +38,13 @@ namespace OReilly
             services.AddDbContext<DataBaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
+
+            //We can know how many time a machine is request and avoid cyberattacks
+            services.AddMemoryCache();
+
+            //Configure the limit of calls per seconds
+            services.ConfigureRateLimiting();
+            services.AddHttpContextAccessor();
 
             ////For cache
             //services.AddResponseCaching();
@@ -105,6 +113,9 @@ namespace OReilly
             //For cache
             app.UseResponseCaching();
             app.UseHttpCacheHeaders();
+
+            //Limit the request per second
+            //app.UseIpRateLimiting(); //Not working. Maybe configuration is wrong 
 
             app.UseRouting();
 
